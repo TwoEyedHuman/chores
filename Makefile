@@ -1,4 +1,4 @@
-.PHONY: dev build down logs sh
+.PHONY: dev build down logs sh migrate seed-rooms
 
 dev:
 	npm run dev
@@ -14,3 +14,9 @@ logs:
 
 sh:
 	docker compose exec app sh
+
+migrate:
+	DATABASE_PATH=./data/chores.db npx drizzle-kit migrate
+
+seed-rooms:
+	DATABASE_PATH=./data/chores.db npx tsx scripts/seed-rooms.ts

@@ -1,1 +1,11 @@
 @import 'tailwindcss';
+
+:root {
+	--frequency-daily: #3b82f6;
+	--frequency-weekly: #22c55e;
+	--frequency-monthly: #fef08a;
+	--frequency-quarterly: #f59e0b;
+	--frequency-biannual: #a855f7;
+	--frequency-annual: #a855f7;
+	--frequency-one-off: #f97316;
+}

@@ -9,7 +9,8 @@
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"test": "vitest run"
 	},
 	"devDependencies": {
 		"@sveltejs/kit": "^2.63.0",
@@ -23,9 +24,11 @@
 		"tailwindcss": "^4.3.3",
 		"tsx": "^4.23.11",
 		"typescript": "^6.0.3",
-		"vite": "^8.0.16"
+		"vite": "^8.0.16",
+		"vitest": "^4.1.10"
 	},
 	"dependencies": {
+		"@node-rs/argon2": "^2.0.2",
 		"@sveltejs/adapter-node": "^5.5.7",
 		"better-sqlite3": "^13.0.3",
 		"drizzle-orm": "^0.45.2"

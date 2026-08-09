@@ -1,4 +1,4 @@
-.PHONY: dev build down logs sh migrate seed-rooms
+.PHONY: dev build down logs sh migrate seed-rooms seed-users
 
 dev:
 	npm run dev
@@ -20,3 +20,6 @@ migrate:
 
 seed-rooms:
 	DATABASE_PATH=./data/chores.db npx tsx scripts/seed-rooms.ts
+
+seed-users:
+	DATABASE_PATH=./data/chores.db npx tsx scripts/seed-users.ts "$(USERNAME)" "$(DISPLAY_NAME)"

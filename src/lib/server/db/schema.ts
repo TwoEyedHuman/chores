@@ -27,6 +27,14 @@ export const chores = sqliteTable('chores', {
 	createdAt: integer('created_at').notNull()
 });
 
+export const sessions = sqliteTable('sessions', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id),
+	expiresAt: integer('expires_at').notNull()
+});
+
 export const completions = sqliteTable(
 	'completions',
 	{

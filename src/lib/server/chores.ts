@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { and, eq, isNull, or, sql } from 'drizzle-orm';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { db as defaultDb } from './db';
-import { chores, completions } from './db/schema';
+import { chores, completions, rooms, users } from './db/schema';
 import { FREQUENCIES, type Frequency } from './frequency';
 import type * as schema from './db/schema';
 import type { Chore, ChoreGroup, Filters } from '../types';
@@ -61,13 +61,17 @@ export function getChores(filters: Filters = {}, database: Database = defaultDb)
 			notes: chores.notes,
 			frequency: chores.frequency,
 			roomId: chores.roomId,
+			roomName: rooms.name,
 			assigneeUserId: chores.assigneeUserId,
+			assigneeDisplayName: users.displayName,
 			archived: chores.archived,
 			createdAt: chores.createdAt,
 			lastCompletedAt: latestCompletion.completedAt
 		})
 		.from(chores)
 		.leftJoin(latestCompletion, eq(latestCompletion.choreId, chores.id))
+		.innerJoin(rooms, eq(rooms.id, chores.roomId))
+		.leftJoin(users, eq(users.id, chores.assigneeUserId))
 		.where(and(...conditions))
 		.all();
 
@@ -82,7 +86,9 @@ export function getChores(filters: Filters = {}, database: Database = defaultDb)
 			notes: row.notes,
 			frequency,
 			roomId: row.roomId,
+			roomName: row.roomName,
 			assigneeUserId: row.assigneeUserId,
+			assigneeDisplayName: row.assigneeDisplayName,
 			archived: Boolean(row.archived),
 			createdAt: row.createdAt,
 			lastCompletedAt: row.lastCompletedAt,

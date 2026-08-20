@@ -6,7 +6,9 @@ export type Chore = {
 	notes: string | null;
 	frequency: Frequency;
 	roomId: string;
+	roomName: string;
 	assigneeUserId: string | null;
+	assigneeDisplayName: string | null;
 	archived: boolean;
 	createdAt: number;
 	lastCompletedAt: number | null;

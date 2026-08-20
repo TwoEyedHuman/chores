@@ -3,7 +3,7 @@ import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { getChores, isActive } from './chores';
+import { ChoreNotFoundError, getChores, isActive, recordCompletion } from './chores';
 import * as schema from './db/schema';
 import { chores, completions, rooms, users } from './db/schema';
 
@@ -172,5 +172,84 @@ describe('getChores', () => {
 		const groups = getChores({}, db);
 
 		expect(groups).toHaveLength(2);
+	});
+});
+
+describe('recordCompletion', () => {
+	let db: Db;
+	let roomId: string;
+
+	beforeEach(() => {
+		db = createTestDb();
+		roomId = seedRoom(db);
+	});
+
+	it('moves an active weekly chore to the Inactive group', () => {
+		const choreId = seedChore(db, roomId, { title: 'Vacuum', frequency: 'weekly' });
+		expect(getChores({}, db)[0].key).toBe('weekly');
+
+		recordCompletion(choreId, null, Date.now(), db);
+
+		const groups = getChores({}, db);
+		expect(groups).toHaveLength(1);
+		expect(groups[0].key).toBe('inactive');
+		expect(groups[0].chores[0].id).toBe(choreId);
+	});
+
+	it('updates the last-completed timestamp of an already-inactive chore', () => {
+		const choreId = seedChore(db, roomId, { title: 'Vacuum', frequency: 'weekly' });
+		const twoDaysAgo = Date.now() - 2 * DAY_MS;
+		seedCompletion(db, choreId, twoDaysAgo);
+		expect(getChores({}, db)[0].key).toBe('inactive');
+
+		const now = Date.now();
+		recordCompletion(choreId, null, now, db);
+
+		const groups = getChores({}, db);
+		expect(groups[0].key).toBe('inactive');
+		expect(groups[0].chores[0].lastCompletedAt).toBe(now);
+	});
+
+	it('populates user_id when a user is supplied', () => {
+		const userId = seedUser(db, 'alice');
+		const choreId = seedChore(db, roomId);
+
+		recordCompletion(choreId, userId, Date.now(), db);
+
+		const rows = db.select().from(completions).all();
+		expect(rows).toHaveLength(1);
+		expect(rows[0].userId).toBe(userId);
+	});
+
+	it('accepts a null user_id for backdated entries', () => {
+		const choreId = seedChore(db, roomId);
+
+		recordCompletion(choreId, null, Date.now(), db);
+
+		const rows = db.select().from(completions).all();
+		expect(rows[0].userId).toBeNull();
+	});
+
+	it('defaults completed_at to now', () => {
+		const choreId = seedChore(db, roomId);
+		const before = Date.now();
+
+		recordCompletion(choreId, null, undefined, db);
+
+		const rows = db.select().from(completions).all();
+		expect(rows[0].completedAt).toBeGreaterThanOrEqual(before);
+		expect(rows[0].completedAt).toBeLessThanOrEqual(Date.now());
+	});
+
+	it('throws ChoreNotFoundError for a nonexistent chore and inserts nothing', () => {
+		expect(() => recordCompletion(randomUUID(), null, Date.now(), db)).toThrow(ChoreNotFoundError);
+		expect(db.select().from(completions).all()).toHaveLength(0);
+	});
+
+	it('throws ChoreNotFoundError for an archived chore and inserts nothing', () => {
+		const choreId = seedChore(db, roomId, { archived: 1 });
+
+		expect(() => recordCompletion(choreId, null, Date.now(), db)).toThrow(ChoreNotFoundError);
+		expect(db.select().from(completions).all()).toHaveLength(0);
 	});
 });

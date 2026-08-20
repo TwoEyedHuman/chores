@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { and, eq, isNull, or, sql } from 'drizzle-orm';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { db as defaultDb } from './db';
@@ -7,6 +8,14 @@ import type * as schema from './db/schema';
 import type { Chore, ChoreGroup, Filters } from '../types';
 
 type Database = BetterSQLite3Database<typeof schema>;
+
+/** Thrown when a completion targets a chore that does not exist or has been archived. */
+export class ChoreNotFoundError extends Error {
+	constructor(public readonly choreId: string) {
+		super(`Chore not found or archived: ${choreId}`);
+		this.name = 'ChoreNotFoundError';
+	}
+}
 
 export function isActive(
 	chore: { frequency: Frequency },
@@ -106,6 +115,33 @@ export function getChores(filters: Filters = {}, database: Database = defaultDb)
 	}
 
 	return groups;
+}
+
+/**
+ * Records that a chore was performed. Always a plain insert — never branches on the
+ * chore's active state, so pressing "performed" on an inactive chore simply moves its
+ * last-performed date forward.
+ */
+export function recordCompletion(
+	choreId: string,
+	userId: string | null = null,
+	completedAt: number = Date.now(),
+	database: Database = defaultDb
+): void {
+	const chore = database
+		.select({ id: chores.id })
+		.from(chores)
+		.where(and(eq(chores.id, choreId), eq(chores.archived, 0)))
+		.get();
+
+	if (!chore) {
+		throw new ChoreNotFoundError(choreId);
+	}
+
+	database
+		.insert(completions)
+		.values({ id: randomUUID(), choreId, userId, completedAt })
+		.run();
 }
 
 function sortByTitle(list: Chore[]): Chore[] {

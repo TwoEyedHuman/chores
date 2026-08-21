@@ -79,6 +79,13 @@
 	onpointermove={handlePointerMove}
 	oncontextmenu={(e) => e.preventDefault()}
 >
+	<span
+		class="pointer-events-none absolute -right-2 -bottom-3 z-0 opacity-[0.07]"
+		style="color: {accentVar}"
+		aria-hidden="true"
+	>
+		<FrequencyIcon key={chore.frequency} class="h-20 w-20" />
+	</span>
 	{#if pressing}
 		<span
 			class="pointer-events-none absolute top-0 left-0 z-0 rounded-full bg-sage-500/15"
@@ -110,8 +117,18 @@
 			Edit
 		</a>
 	</div>
-	<p class="relative z-10 text-sm text-stone-500">{chore.roomName} · {assigneeLabel}</p>
-	<p class="relative z-10 mb-3 text-sm text-stone-500">
+	<p class="relative z-10 flex items-center gap-1.5 text-sm text-stone-500">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-stone-400">
+			<path d="M4 11.5 12 4l8 7.5" />
+			<path d="M6 10v9a1 1 0 0 0 1 1h3v-5h4v5h3a1 1 0 0 0 1-1v-9" />
+		</svg>
+		{chore.roomName} · {assigneeLabel}
+	</p>
+	<p class="relative z-10 mb-3 flex items-center gap-1.5 text-sm text-stone-500">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-stone-400">
+			<circle cx="12" cy="12" r="8.5" />
+			<path d="M12 7.5V12l3 2" />
+		</svg>
 		{#if chore.lastCompletedAt === null}
 			Never
 		{:else}
@@ -138,6 +155,11 @@
 	>
 		<input type="hidden" name="choreId" value={chore.id} />
 		<button type="submit" disabled={pending} class="btn-primary w-full">
+			{#if !pending}
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+					<path d="M4.5 12.5l5 5 10-10" />
+				</svg>
+			{/if}
 			{pending ? 'Saving…' : 'Mark performed'}
 		</button>
 	</form>

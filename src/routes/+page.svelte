@@ -11,7 +11,7 @@
 	);
 </script>
 
-<div class="p-4">
+<div class="page-container p-4">
 	<FilterBar frequencies={data.frequencies} rooms={data.rooms} users={data.users} filters={data.filters} />
 
 	{#if !hasChores}
@@ -25,7 +25,7 @@
 					<h2 class="mb-2 text-sm font-semibold tracking-wide text-gray-500 uppercase">
 						{group.label}
 					</h2>
-					<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+					<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 						{#each group.chores as chore (chore.id)}
 							<ChoreCard {chore} />
 						{/each}

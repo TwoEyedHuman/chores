@@ -32,18 +32,13 @@
 		{values}
 		error={form?.error}
 	>
-		<button
-			type="submit"
-			class="w-full rounded bg-emerald-600 px-3 py-2 text-sm font-medium text-white"
-		>
-			Save
-		</button>
+		<button type="submit" class="btn-primary w-full">Save</button>
 	</ChoreForm>
 
 	<form
 		method="POST"
 		action="?/delete"
-		class="mt-8 border-t pt-4"
+		class="mt-8 border-t border-gray-200 pt-4"
 		use:enhance={() => {
 			deleting = true;
 			return async ({ result }) => {
@@ -62,11 +57,7 @@
 			};
 		}}
 	>
-		<button
-			type="submit"
-			disabled={deleting}
-			class="w-full rounded border border-red-600 px-3 py-2 text-sm font-medium text-red-600 disabled:opacity-50"
-		>
+		<button type="submit" disabled={deleting} class="btn-danger w-full">
 			{deleting ? 'Deleting…' : 'Delete chore'}
 		</button>
 	</form>

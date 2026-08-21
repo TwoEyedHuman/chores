@@ -51,7 +51,7 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -- pointer-only long-press shortcut; the Edit link below is the accessible route -->
 <div
-	class="rounded-md border-l-4 bg-white p-3 shadow-sm transition-transform"
+	class="card"
 	class:opacity-60={!chore.active}
 	class:scale-[0.98]={pressing}
 	style="border-left-color: {accentVar}"
@@ -67,13 +67,13 @@
 		<a
 			href={`/chores/${chore.id}/edit`}
 			aria-label={`Edit ${chore.title}`}
-			class="shrink-0 text-xs text-gray-400 underline"
+			class="shrink-0 rounded-full px-2 py-1 text-xs font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-600"
 		>
 			Edit
 		</a>
 	</div>
 	<p class="text-sm text-gray-500">{chore.roomName} · {assigneeLabel}</p>
-	<p class="text-sm text-gray-500">
+	<p class="mb-3 text-sm text-gray-500">
 		{#if chore.lastCompletedAt === null}
 			Never
 		{:else}
@@ -98,11 +98,7 @@
 		}}
 	>
 		<input type="hidden" name="choreId" value={chore.id} />
-		<button
-			type="submit"
-			disabled={pending}
-			class="mt-2 rounded bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
-		>
+		<button type="submit" disabled={pending} class="btn-primary w-full">
 			{pending ? 'Saving…' : 'Mark performed'}
 		</button>
 	</form>

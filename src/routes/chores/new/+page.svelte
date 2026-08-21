@@ -24,11 +24,6 @@
 		{values}
 		error={form?.error}
 	>
-		<button
-			type="submit"
-			class="w-full rounded bg-emerald-600 px-3 py-2 text-sm font-medium text-white"
-		>
-			Add chore
-		</button>
+		<button type="submit" class="btn-primary w-full">Add chore</button>
 	</ChoreForm>
 </div>

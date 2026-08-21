@@ -3,11 +3,47 @@
 :root {
 	--frequency-daily: #3b82f6;
 	--frequency-weekly: #22c55e;
-	--frequency-monthly: #fef08a;
+	--frequency-monthly: #ca8a04;
 	--frequency-quarterly: #f59e0b;
 	--frequency-biannual: #a855f7;
-	--frequency-annual: #a855f7;
+	--frequency-annual: #7c3aed;
 	--frequency-one-off: #f97316;
+
+	--color-bg: #f8fafc;
+	--color-border: #e2e8f0;
+	--color-text: #0f172a;
+	--color-text-muted: #64748b;
+	--color-accent: #059669;
+	--color-accent-hover: #047857;
+}
+
+body {
+	background-color: var(--color-bg);
+	color: var(--color-text);
+}
+
+@layer components {
+	.btn-primary {
+		@apply inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50;
+	}
+	.btn-ghost {
+		@apply inline-flex items-center justify-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50;
+	}
+	.btn-danger {
+		@apply inline-flex items-center justify-center gap-1.5 rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50;
+	}
+	.field-label {
+		@apply mb-1 block text-sm font-medium text-gray-700;
+	}
+	.field {
+		@apply w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100;
+	}
+	.card {
+		@apply rounded-xl border-l-4 bg-white p-3.5 shadow-sm transition-transform;
+	}
+	.page-container {
+		@apply mx-auto w-full max-w-3xl;
+	}
 }
 
 .scrollbar-hide {

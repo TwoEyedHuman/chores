@@ -45,7 +45,7 @@
 
 	<div class="flex flex-wrap items-center gap-2">
 		<select
-			class="rounded border border-gray-300 bg-white px-2 py-1 text-sm"
+			class="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm shadow-sm outline-none focus:border-emerald-500"
 			value={filters.roomId ?? ''}
 			onchange={(e) => setParam('room', e.currentTarget.value || null)}
 		>
@@ -56,7 +56,7 @@
 		</select>
 
 		<select
-			class="rounded border border-gray-300 bg-white px-2 py-1 text-sm"
+			class="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm shadow-sm outline-none focus:border-emerald-500"
 			value={filters.assignee ?? ''}
 			onchange={(e) => setParam('assignee', e.currentTarget.value || null)}
 		>
@@ -67,11 +67,7 @@
 		</select>
 
 		{#if hasActiveFilters}
-			<button
-				type="button"
-				class="text-sm font-medium text-emerald-700 underline"
-				onclick={clearFilters}
-			>
+			<button type="button" class="btn-ghost px-3 py-1.5" onclick={clearFilters}>
 				Clear filters
 			</button>
 		{/if}

@@ -168,6 +168,44 @@ export function recordCompletion(
 		.run();
 }
 
+/**
+ * Creates a chore and, if a backdated "date last performed" is supplied, a matching
+ * completions row with no performer attached (user_id = NULL), in one transaction.
+ */
+export function createChore(
+	input: {
+		title: string;
+		roomId: string;
+		assigneeUserId: string | null;
+		frequency: Frequency;
+		lastPerformedAt: number | null;
+	},
+	database: Database = defaultDb
+): string {
+	const id = randomUUID();
+
+	database.transaction((tx) => {
+		tx.insert(chores)
+			.values({
+				id,
+				title: input.title,
+				frequency: input.frequency,
+				roomId: input.roomId,
+				assigneeUserId: input.assigneeUserId,
+				createdAt: Date.now()
+			})
+			.run();
+
+		if (input.lastPerformedAt !== null) {
+			tx.insert(completions)
+				.values({ id: randomUUID(), choreId: id, userId: null, completedAt: input.lastPerformedAt })
+				.run();
+		}
+	});
+
+	return id;
+}
+
 function sortByTitle(list: Chore[]): Chore[] {
 	return [...list].sort((a, b) => a.title.localeCompare(b.title));
 }

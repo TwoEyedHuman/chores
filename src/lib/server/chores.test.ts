@@ -3,7 +3,7 @@ import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { ChoreNotFoundError, getChores, isActive, recordCompletion } from './chores';
+import { ChoreNotFoundError, createChore, getChores, isActive, recordCompletion } from './chores';
 import * as schema from './db/schema';
 import { chores, completions, rooms, users } from './db/schema';
 
@@ -251,5 +251,74 @@ describe('recordCompletion', () => {
 
 		expect(() => recordCompletion(choreId, null, Date.now(), db)).toThrow(ChoreNotFoundError);
 		expect(db.select().from(completions).all()).toHaveLength(0);
+	});
+});
+
+describe('createChore', () => {
+	let db: Db;
+	let roomId: string;
+
+	beforeEach(() => {
+		db = createTestDb();
+		roomId = seedRoom(db);
+	});
+
+	it('creates a chore with no completion when no last-performed date is given', () => {
+		createChore(
+			{ title: 'Dishes', roomId, assigneeUserId: null, frequency: 'weekly', lastPerformedAt: null },
+			db
+		);
+
+		const rows = db.select().from(chores).all();
+		expect(rows).toHaveLength(1);
+		expect(rows[0].title).toBe('Dishes');
+		expect(db.select().from(completions).all()).toHaveLength(0);
+		expect(getChores({}, db)[0].chores[0].lastCompletedAt).toBeNull();
+	});
+
+	it('inserts a backdated completion with a null user_id when a last-performed date is given', () => {
+		const tenDaysAgo = Date.now() - 10 * DAY_MS;
+
+		const choreId = createChore(
+			{
+				title: 'Vacuum',
+				roomId,
+				assigneeUserId: null,
+				frequency: 'weekly',
+				lastPerformedAt: tenDaysAgo
+			},
+			db
+		);
+
+		const rows = db.select().from(completions).all();
+		expect(rows).toHaveLength(1);
+		expect(rows[0].choreId).toBe(choreId);
+		expect(rows[0].userId).toBeNull();
+		expect(rows[0].completedAt).toBe(tenDaysAgo);
+	});
+
+	it('a chore backdated past its interval lands in the Inactive group', () => {
+		const yesterday = Date.now() - DAY_MS;
+
+		createChore(
+			{ title: 'Vacuum', roomId, assigneeUserId: null, frequency: 'weekly', lastPerformedAt: yesterday },
+			db
+		);
+
+		const groups = getChores({}, db);
+		expect(groups[0].key).toBe('inactive');
+	});
+
+	it('stores a null assignee for "Either" and the chore matches both people\'s filters', () => {
+		const alice = seedUser(db, 'alice');
+		const bob = seedUser(db, 'bob');
+
+		createChore(
+			{ title: 'Shared', roomId, assigneeUserId: null, frequency: 'daily', lastPerformedAt: null },
+			db
+		);
+
+		expect(getChores({ assignee: alice }, db)[0].chores).toHaveLength(1);
+		expect(getChores({ assignee: bob }, db)[0].chores).toHaveLength(1);
 	});
 });

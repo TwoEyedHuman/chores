@@ -1,9 +1,41 @@
 import { fail } from '@sveltejs/kit';
-import { getChores, recordCompletion, ChoreNotFoundError } from '$lib/server/chores';
+import {
+	ChoreNotFoundError,
+	frequencyOptions,
+	getChores,
+	getRooms,
+	getUsers,
+	recordCompletion
+} from '$lib/server/chores';
+import { FREQUENCIES, type Frequency } from '$lib/server/frequency';
+import type { Filters } from '$lib/types';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = () => {
-	return { groups: getChores() };
+export const load: PageServerLoad = ({ url }) => {
+	const filters: Filters = {};
+
+	const frequency = url.searchParams.get('frequency');
+	if (frequency && frequency in FREQUENCIES) {
+		filters.frequency = frequency as Frequency;
+	}
+
+	const roomId = url.searchParams.get('room');
+	if (roomId) {
+		filters.roomId = roomId;
+	}
+
+	const assignee = url.searchParams.get('assignee');
+	if (assignee) {
+		filters.assignee = assignee;
+	}
+
+	return {
+		groups: getChores(filters),
+		frequencies: frequencyOptions(),
+		rooms: getRooms(),
+		users: getUsers(),
+		filters
+	};
 };
 
 export const actions: Actions = {

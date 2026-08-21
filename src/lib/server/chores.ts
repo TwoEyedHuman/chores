@@ -5,7 +5,7 @@ import { db as defaultDb } from './db';
 import { chores, completions, rooms, users } from './db/schema';
 import { FREQUENCIES, type Frequency } from './frequency';
 import type * as schema from './db/schema';
-import type { Chore, ChoreGroup, Filters } from '../types';
+import type { Chore, ChoreGroup, Filters, FrequencyOption, Person, Room } from '../types';
 
 type Database = BetterSQLite3Database<typeof schema>;
 
@@ -121,6 +121,24 @@ export function getChores(filters: Filters = {}, database: Database = defaultDb)
 	}
 
 	return groups;
+}
+
+export function getRooms(database: Database = defaultDb): Room[] {
+	return database.select({ id: rooms.id, name: rooms.name }).from(rooms).orderBy(rooms.sortOrder).all();
+}
+
+export function getUsers(database: Database = defaultDb): Person[] {
+	return database
+		.select({ id: users.id, displayName: users.displayName })
+		.from(users)
+		.orderBy(users.displayName)
+		.all();
+}
+
+export function frequencyOptions(): FrequencyOption[] {
+	return (Object.keys(FREQUENCIES) as Frequency[])
+		.sort((a, b) => FREQUENCIES[a].sortRank - FREQUENCIES[b].sortRank)
+		.map((key) => ({ key, label: FREQUENCIES[key].label }));
 }
 
 /**

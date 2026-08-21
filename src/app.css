@@ -9,3 +9,12 @@
 	--frequency-annual: #a855f7;
 	--frequency-one-off: #f97316;
 }
+
+.scrollbar-hide {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+	display: none;
+}

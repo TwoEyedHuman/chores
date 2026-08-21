@@ -26,3 +26,18 @@ export type Filters = {
 	roomId?: string;
 	assignee?: string;
 };
+
+export type Room = {
+	id: string;
+	name: string;
+};
+
+export type Person = {
+	id: string;
+	displayName: string;
+};
+
+export type FrequencyOption = {
+	key: Frequency;
+	label: string;
+};

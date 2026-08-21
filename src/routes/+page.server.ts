@@ -5,7 +5,8 @@ import {
 	getChores,
 	getRooms,
 	getUsers,
-	recordCompletion
+	recordCompletion,
+	restoreChore
 } from '$lib/server/chores';
 import { FREQUENCIES, type Frequency } from '$lib/server/frequency';
 import type { Filters } from '$lib/types';
@@ -49,6 +50,26 @@ export const actions: Actions = {
 
 		try {
 			recordCompletion(choreId, locals.user!.id);
+		} catch (error) {
+			if (error instanceof ChoreNotFoundError) {
+				return fail(404, { error: 'Chore not found' });
+			}
+			throw error;
+		}
+
+		return { success: true };
+	},
+
+	restore: async ({ request }) => {
+		const data = await request.formData();
+		const choreId = data.get('choreId');
+
+		if (typeof choreId !== 'string' || !choreId) {
+			return fail(400, { error: 'Missing chore id' });
+		}
+
+		try {
+			restoreChore(choreId);
 		} catch (error) {
 			if (error instanceof ChoreNotFoundError) {
 				return fail(404, { error: 'Chore not found' });

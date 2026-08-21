@@ -1,5 +1,6 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.svg';
+	import Toast from '$lib/components/Toast.svelte';
 	import '../app.css';
 	import type { LayoutProps } from './$types';
 
@@ -23,3 +24,5 @@
 {/if}
 
 {@render children()}
+
+<Toast />

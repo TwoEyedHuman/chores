@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 	import type { Chore } from '$lib/types';
 	import { formatAbsoluteDate, formatRelativeDate } from '$lib/relativeDate';
 
@@ -10,14 +11,67 @@
 
 	let pending = $state(false);
 	let error = $state<string | null>(null);
+	let pressing = $state(false);
+
+	const LONG_PRESS_MS = 500;
+	const MOVE_THRESHOLD_PX = 10;
+	let pressTimer: ReturnType<typeof setTimeout> | undefined;
+	let pressStartX = 0;
+	let pressStartY = 0;
+
+	function handlePointerDown(event: PointerEvent) {
+		if ((event.target as HTMLElement).closest('form')) {
+			return;
+		}
+		pressStartX = event.clientX;
+		pressStartY = event.clientY;
+		pressing = true;
+		pressTimer = setTimeout(() => {
+			pressing = false;
+			goto(`/chores/${chore.id}/edit`);
+		}, LONG_PRESS_MS);
+	}
+
+	function cancelPress() {
+		clearTimeout(pressTimer);
+		pressing = false;
+	}
+
+	function handlePointerMove(event: PointerEvent) {
+		if (!pressTimer) {
+			return;
+		}
+		const dx = event.clientX - pressStartX;
+		const dy = event.clientY - pressStartY;
+		if (Math.hypot(dx, dy) > MOVE_THRESHOLD_PX) {
+			cancelPress();
+		}
+	}
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -- pointer-only long-press shortcut; the Edit link below is the accessible route -->
 <div
-	class="rounded-md border-l-4 bg-white p-3 shadow-sm"
+	class="rounded-md border-l-4 bg-white p-3 shadow-sm transition-transform"
 	class:opacity-60={!chore.active}
+	class:scale-[0.98]={pressing}
 	style="border-left-color: {accentVar}"
+	onpointerdown={handlePointerDown}
+	onpointerup={cancelPress}
+	onpointercancel={cancelPress}
+	onpointerleave={cancelPress}
+	onpointermove={handlePointerMove}
+	oncontextmenu={(e) => e.preventDefault()}
 >
-	<p class="font-medium" class:text-gray-500={!chore.active}>{chore.title}</p>
+	<div class="flex items-start justify-between gap-2">
+		<p class="font-medium" class:text-gray-500={!chore.active}>{chore.title}</p>
+		<a
+			href={`/chores/${chore.id}/edit`}
+			aria-label={`Edit ${chore.title}`}
+			class="shrink-0 text-xs text-gray-400 underline"
+		>
+			Edit
+		</a>
+	</div>
 	<p class="text-sm text-gray-500">{chore.roomName} · {assigneeLabel}</p>
 	<p class="text-sm text-gray-500">
 		{#if chore.lastCompletedAt === null}

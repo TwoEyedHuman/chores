@@ -123,6 +123,58 @@ export function getChores(filters: Filters = {}, database: Database = defaultDb)
 	return groups;
 }
 
+export function getChoreById(choreId: string, database: Database = defaultDb): Chore | null {
+	const latestCompletion = database
+		.select({
+			choreId: completions.choreId,
+			completedAt: sql<number>`max(${completions.completedAt})`.as('completed_at')
+		})
+		.from(completions)
+		.groupBy(completions.choreId)
+		.as('latest_completion');
+
+	const row = database
+		.select({
+			id: chores.id,
+			title: chores.title,
+			notes: chores.notes,
+			frequency: chores.frequency,
+			roomId: chores.roomId,
+			roomName: rooms.name,
+			assigneeUserId: chores.assigneeUserId,
+			assigneeDisplayName: users.displayName,
+			archived: chores.archived,
+			createdAt: chores.createdAt,
+			lastCompletedAt: latestCompletion.completedAt
+		})
+		.from(chores)
+		.leftJoin(latestCompletion, eq(latestCompletion.choreId, chores.id))
+		.innerJoin(rooms, eq(rooms.id, chores.roomId))
+		.leftJoin(users, eq(users.id, chores.assigneeUserId))
+		.where(and(eq(chores.id, choreId), eq(chores.archived, 0)))
+		.get();
+
+	if (!row) {
+		return null;
+	}
+
+	const frequency = row.frequency as Frequency;
+	return {
+		id: row.id,
+		title: row.title,
+		notes: row.notes,
+		frequency,
+		roomId: row.roomId,
+		roomName: row.roomName,
+		assigneeUserId: row.assigneeUserId,
+		assigneeDisplayName: row.assigneeDisplayName,
+		archived: Boolean(row.archived),
+		createdAt: row.createdAt,
+		lastCompletedAt: row.lastCompletedAt,
+		active: isActive({ frequency }, row.lastCompletedAt)
+	};
+}
+
 export function getRooms(database: Database = defaultDb): Room[] {
 	return database.select({ id: rooms.id, name: rooms.name }).from(rooms).orderBy(rooms.sortOrder).all();
 }
@@ -204,6 +256,109 @@ export function createChore(
 	});
 
 	return id;
+}
+
+/**
+ * Updates a chore's editable fields and its most recent completion in one transaction.
+ * Leaving "last performed" unchanged (same calendar date) is a no-op; changing it updates
+ * that completion's completed_at; clearing it deletes the most recent completion row.
+ * Never inserts a second completion for the same edit.
+ */
+export function updateChore(
+	choreId: string,
+	fields: {
+		title: string;
+		roomId: string;
+		assigneeUserId: string | null;
+		frequency: Frequency;
+		lastPerformedAt: number | null;
+	},
+	database: Database = defaultDb
+): void {
+	const chore = database
+		.select({ id: chores.id })
+		.from(chores)
+		.where(and(eq(chores.id, choreId), eq(chores.archived, 0)))
+		.get();
+
+	if (!chore) {
+		throw new ChoreNotFoundError(choreId);
+	}
+
+	database.transaction((tx) => {
+		tx.update(chores)
+			.set({
+				title: fields.title,
+				roomId: fields.roomId,
+				assigneeUserId: fields.assigneeUserId,
+				frequency: fields.frequency
+			})
+			.where(eq(chores.id, choreId))
+			.run();
+
+		const latest = tx
+			.select({ id: completions.id, completedAt: completions.completedAt })
+			.from(completions)
+			.where(eq(completions.choreId, choreId))
+			.orderBy(sql`${completions.completedAt} desc`)
+			.limit(1)
+			.get();
+
+		if (fields.lastPerformedAt === null) {
+			if (latest) {
+				tx.delete(completions).where(eq(completions.id, latest.id)).run();
+			}
+			return;
+		}
+
+		if (!latest) {
+			tx.insert(completions)
+				.values({ id: randomUUID(), choreId, userId: null, completedAt: fields.lastPerformedAt })
+				.run();
+			return;
+		}
+
+		if (toDateString(latest.completedAt) !== toDateString(fields.lastPerformedAt)) {
+			tx.update(completions)
+				.set({ completedAt: fields.lastPerformedAt })
+				.where(eq(completions.id, latest.id))
+				.run();
+		}
+	});
+}
+
+/** Archives a chore, hiding it from every list while preserving its completion history. */
+export function deleteChore(choreId: string, database: Database = defaultDb): void {
+	const chore = database
+		.select({ id: chores.id })
+		.from(chores)
+		.where(and(eq(chores.id, choreId), eq(chores.archived, 0)))
+		.get();
+
+	if (!chore) {
+		throw new ChoreNotFoundError(choreId);
+	}
+
+	database.update(chores).set({ archived: 1 }).where(eq(chores.id, choreId)).run();
+}
+
+/** Exact inverse of {@link deleteChore} — un-archives a chore. */
+export function restoreChore(choreId: string, database: Database = defaultDb): void {
+	const chore = database
+		.select({ id: chores.id })
+		.from(chores)
+		.where(and(eq(chores.id, choreId), eq(chores.archived, 1)))
+		.get();
+
+	if (!chore) {
+		throw new ChoreNotFoundError(choreId);
+	}
+
+	database.update(chores).set({ archived: 0 }).where(eq(chores.id, choreId)).run();
+}
+
+function toDateString(timestamp: number): string {
+	return new Date(timestamp).toISOString().slice(0, 10);
 }
 
 function sortByTitle(list: Chore[]): Chore[] {

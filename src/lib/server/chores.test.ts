@@ -3,7 +3,17 @@ import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { ChoreNotFoundError, createChore, getChores, isActive, recordCompletion } from './chores';
+import {
+	ChoreNotFoundError,
+	createChore,
+	deleteChore,
+	getChoreById,
+	getChores,
+	isActive,
+	recordCompletion,
+	restoreChore,
+	updateChore
+} from './chores';
 import * as schema from './db/schema';
 import { chores, completions, rooms, users } from './db/schema';
 
@@ -320,5 +330,203 @@ describe('createChore', () => {
 
 		expect(getChores({ assignee: alice }, db)[0].chores).toHaveLength(1);
 		expect(getChores({ assignee: bob }, db)[0].chores).toHaveLength(1);
+	});
+});
+
+describe('getChoreById', () => {
+	let db: Db;
+	let roomId: string;
+
+	beforeEach(() => {
+		db = createTestDb();
+		roomId = seedRoom(db);
+	});
+
+	it('returns the chore with its latest completion', () => {
+		const choreId = seedChore(db, roomId, { title: 'Vacuum' });
+		const completedAt = Date.now() - 2 * DAY_MS;
+		seedCompletion(db, choreId, completedAt);
+
+		const chore = getChoreById(choreId, db);
+
+		expect(chore?.title).toBe('Vacuum');
+		expect(chore?.lastCompletedAt).toBe(completedAt);
+	});
+
+	it('returns null for a nonexistent chore', () => {
+		expect(getChoreById(randomUUID(), db)).toBeNull();
+	});
+
+	it('returns null for an archived chore', () => {
+		const choreId = seedChore(db, roomId, { archived: 1 });
+		expect(getChoreById(choreId, db)).toBeNull();
+	});
+});
+
+describe('updateChore', () => {
+	let db: Db;
+	let roomId: string;
+
+	beforeEach(() => {
+		db = createTestDb();
+		roomId = seedRoom(db);
+	});
+
+	it('updates title, room, assignee, and frequency', () => {
+		const otherRoom = seedRoom(db, 'Bathroom');
+		const alice = seedUser(db, 'alice');
+		const choreId = seedChore(db, roomId, { title: 'Old', frequency: 'weekly' });
+
+		updateChore(
+			choreId,
+			{ title: 'New', roomId: otherRoom, assigneeUserId: alice, frequency: 'monthly', lastPerformedAt: null },
+			db
+		);
+
+		const chore = getChoreById(choreId, db);
+		expect(chore?.title).toBe('New');
+		expect(chore?.roomId).toBe(otherRoom);
+		expect(chore?.assigneeUserId).toBe(alice);
+		expect(chore?.frequency).toBe('monthly');
+	});
+
+	it('re-groups the chore when frequency changes', () => {
+		const choreId = seedChore(db, roomId, { frequency: 'weekly' });
+		expect(getChores({}, db)[0].key).toBe('weekly');
+
+		updateChore(
+			choreId,
+			{ title: 'Chore', roomId, assigneeUserId: null, frequency: 'monthly', lastPerformedAt: null },
+			db
+		);
+
+		expect(getChores({}, db)[0].key).toBe('monthly');
+	});
+
+	it('leaving the last-performed date unchanged does not touch the completions row', () => {
+		const completedAt = Date.now() - 3 * DAY_MS;
+		const choreId = seedChore(db, roomId);
+		seedCompletion(db, choreId, completedAt);
+		const sameDate = new Date(completedAt).toISOString().slice(0, 10);
+		const sameDateTimestamp = new Date(`${sameDate}T00:00:00.000Z`).getTime();
+
+		updateChore(
+			choreId,
+			{ title: 'Chore', roomId, assigneeUserId: null, frequency: 'weekly', lastPerformedAt: sameDateTimestamp },
+			db
+		);
+
+		const rows = db.select().from(completions).all();
+		expect(rows).toHaveLength(1);
+		expect(rows[0].completedAt).toBe(completedAt);
+	});
+
+	it('changing the last-performed date updates the existing completion, not a new row', () => {
+		const choreId = seedChore(db, roomId);
+		seedCompletion(db, choreId, Date.now() - 5 * DAY_MS);
+		const newDate = Date.now() - 2 * DAY_MS;
+
+		updateChore(
+			choreId,
+			{ title: 'Chore', roomId, assigneeUserId: null, frequency: 'weekly', lastPerformedAt: newDate },
+			db
+		);
+
+		const rows = db.select().from(completions).all();
+		expect(rows).toHaveLength(1);
+		expect(rows[0].completedAt).toBe(newDate);
+	});
+
+	it('clearing the last-performed date deletes the most recent completion', () => {
+		const choreId = seedChore(db, roomId);
+		seedCompletion(db, choreId, Date.now() - 5 * DAY_MS);
+
+		updateChore(
+			choreId,
+			{ title: 'Chore', roomId, assigneeUserId: null, frequency: 'weekly', lastPerformedAt: null },
+			db
+		);
+
+		expect(db.select().from(completions).all()).toHaveLength(0);
+	});
+
+	it('setting a last-performed date on a chore with none inserts a completion', () => {
+		const choreId = seedChore(db, roomId);
+		const performedAt = Date.now() - DAY_MS;
+
+		updateChore(
+			choreId,
+			{ title: 'Chore', roomId, assigneeUserId: null, frequency: 'weekly', lastPerformedAt: performedAt },
+			db
+		);
+
+		const rows = db.select().from(completions).all();
+		expect(rows).toHaveLength(1);
+		expect(rows[0].completedAt).toBe(performedAt);
+		expect(rows[0].userId).toBeNull();
+	});
+
+	it('throws ChoreNotFoundError for a missing or archived chore', () => {
+		const archivedId = seedChore(db, roomId, { archived: 1 });
+		expect(() =>
+			updateChore(
+				archivedId,
+				{ title: 'X', roomId, assigneeUserId: null, frequency: 'weekly', lastPerformedAt: null },
+				db
+			)
+		).toThrow(ChoreNotFoundError);
+		expect(() =>
+			updateChore(
+				randomUUID(),
+				{ title: 'X', roomId, assigneeUserId: null, frequency: 'weekly', lastPerformedAt: null },
+				db
+			)
+		).toThrow(ChoreNotFoundError);
+	});
+});
+
+describe('deleteChore / restoreChore', () => {
+	let db: Db;
+	let roomId: string;
+
+	beforeEach(() => {
+		db = createTestDb();
+		roomId = seedRoom(db);
+	});
+
+	it('archives a chore, hiding it from getChores but keeping its row', () => {
+		const choreId = seedChore(db, roomId);
+
+		deleteChore(choreId, db);
+
+		expect(getChores({}, db)).toEqual([]);
+		const rows = db.select().from(chores).all();
+		expect(rows).toHaveLength(1);
+		expect(rows[0].archived).toBe(1);
+	});
+
+	it('restoreChore is the exact inverse of deleteChore', () => {
+		const choreId = seedChore(db, roomId, { frequency: 'daily' });
+
+		deleteChore(choreId, db);
+		expect(getChores({}, db)).toEqual([]);
+
+		restoreChore(choreId, db);
+		expect(getChores({}, db)[0].chores.map((c) => c.id)).toEqual([choreId]);
+	});
+
+	it('deleteChore throws ChoreNotFoundError for a missing or already-archived chore', () => {
+		const choreId = seedChore(db, roomId);
+		deleteChore(choreId, db);
+
+		expect(() => deleteChore(choreId, db)).toThrow(ChoreNotFoundError);
+		expect(() => deleteChore(randomUUID(), db)).toThrow(ChoreNotFoundError);
+	});
+
+	it('restoreChore throws ChoreNotFoundError for a missing or non-archived chore', () => {
+		const choreId = seedChore(db, roomId);
+
+		expect(() => restoreChore(choreId, db)).toThrow(ChoreNotFoundError);
+		expect(() => restoreChore(randomUUID(), db)).toThrow(ChoreNotFoundError);
 	});
 });

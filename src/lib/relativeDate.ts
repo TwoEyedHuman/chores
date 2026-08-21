@@ -13,3 +13,8 @@ export function formatAbsoluteDate(timestamp: number): string {
 		day: 'numeric'
 	});
 }
+
+/** Formats a timestamp as a `YYYY-MM-DD` string for a `<input type="date">` value. */
+export function formatDateInput(timestamp: number): string {
+	return new Date(timestamp).toISOString().slice(0, 10);
+}

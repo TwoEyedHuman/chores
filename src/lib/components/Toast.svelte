@@ -44,7 +44,7 @@
 		onfocusin={pause}
 		onfocusout={resume}
 	>
-		<div class="flex items-center gap-3 rounded-lg bg-gray-900 px-4 py-3 text-sm text-white shadow-lg">
+		<div class="flex items-center gap-3 rounded-lg bg-stone-900 px-4 py-3 text-sm text-white shadow-lg">
 			<span>{$toast.message}</span>
 			<form
 				method="POST"
@@ -59,7 +59,7 @@
 				}}
 			>
 				<input type="hidden" name="choreId" value={$toast.action} />
-				<button type="submit" class="font-medium text-emerald-300 underline">
+				<button type="submit" class="font-medium text-sage-300 underline">
 					{$toast.actionLabel}
 				</button>
 			</form>

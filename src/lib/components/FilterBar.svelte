@@ -23,6 +23,38 @@
 	);
 
 	let open = $state(false);
+	let poked = $state(false);
+	let pokeTimeout: ReturnType<typeof setTimeout> | undefined;
+
+	function poke() {
+		poked = true;
+		clearTimeout(pokeTimeout);
+		pokeTimeout = setTimeout(() => (poked = false), 2500);
+	}
+
+	function handlePointerEnter(event: PointerEvent) {
+		if (event.pointerType === 'mouse') {
+			poke();
+		}
+	}
+
+	function handlePointerLeave(event: PointerEvent) {
+		if (event.pointerType === 'mouse') {
+			poked = false;
+		}
+	}
+
+	function handleTouchStart(event: TouchEvent) {
+		if (!poked) {
+			event.preventDefault();
+			poke();
+		}
+	}
+
+	function openDrawer() {
+		poked = false;
+		open = true;
+	}
 
 	function setParam(key: string, value: string | null) {
 		const params = new URLSearchParams(page.url.searchParams);
@@ -52,8 +84,13 @@
 
 <button
 	type="button"
-	class="fixed top-[20%] left-0 z-30 -translate-y-1/2 rounded-r-lg bg-gray-500 py-3 pr-2.5 pl-2 text-white shadow-lg"
-	onclick={() => (open = true)}
+	class="fixed top-[20%] left-0 z-30 -translate-y-1/2 rounded-r-lg bg-gray-500 py-3 pr-2.5 pl-2 text-white shadow-lg transition-all duration-200 ease-out"
+	class:opacity-50={!poked}
+	class:-translate-x-[65%]={!poked}
+	onpointerenter={handlePointerEnter}
+	onpointerleave={handlePointerLeave}
+	ontouchstart={handleTouchStart}
+	onclick={openDrawer}
 	aria-label="Filters"
 >
 	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5">

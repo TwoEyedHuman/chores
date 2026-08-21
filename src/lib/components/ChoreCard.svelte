@@ -12,10 +12,14 @@
 	let pending = $state(false);
 	let error = $state<string | null>(null);
 	let pressing = $state(false);
+	let pressGrown = $state(false);
+	let pressOriginX = $state(0);
+	let pressOriginY = $state(0);
 
 	const LONG_PRESS_MS = 500;
 	const MOVE_THRESHOLD_PX = 10;
 	let pressTimer: ReturnType<typeof setTimeout> | undefined;
+	let growFrame: ReturnType<typeof requestAnimationFrame> | undefined;
 	let pressStartX = 0;
 	let pressStartY = 0;
 
@@ -25,16 +29,28 @@
 		}
 		pressStartX = event.clientX;
 		pressStartY = event.clientY;
+		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+		pressOriginX = event.clientX - rect.left;
+		pressOriginY = event.clientY - rect.top;
 		pressing = true;
+		pressGrown = false;
+		growFrame = requestAnimationFrame(() => {
+			pressGrown = true;
+		});
 		pressTimer = setTimeout(() => {
 			pressing = false;
+			pressGrown = false;
 			goto(`/chores/${chore.id}/edit`);
 		}, LONG_PRESS_MS);
 	}
 
 	function cancelPress() {
 		clearTimeout(pressTimer);
+		if (growFrame) {
+			cancelAnimationFrame(growFrame);
+		}
 		pressing = false;
+		pressGrown = false;
 	}
 
 	function handlePointerMove(event: PointerEvent) {
@@ -51,7 +67,7 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -- pointer-only long-press shortcut; the Edit link below is the accessible route -->
 <div
-	class="card"
+	class="card relative overflow-hidden"
 	class:opacity-60={!chore.active}
 	class:scale-[0.98]={pressing}
 	style="border-left-color: {accentVar}"
@@ -62,7 +78,20 @@
 	onpointermove={handlePointerMove}
 	oncontextmenu={(e) => e.preventDefault()}
 >
-	<div class="flex items-start justify-between gap-2">
+	{#if pressing}
+		<span
+			class="pointer-events-none absolute top-0 left-0 z-0 rounded-full bg-emerald-500/15"
+			style="
+				width: 1200px;
+				height: 1200px;
+				left: {pressOriginX}px;
+				top: {pressOriginY}px;
+				transform: translate(-50%, -50%) scale({pressGrown ? 1 : 0});
+				transition: transform {LONG_PRESS_MS * 2}ms linear;
+			"
+		></span>
+	{/if}
+	<div class="relative z-10 flex items-start justify-between gap-2">
 		<p class="font-medium" class:text-gray-500={!chore.active}>{chore.title}</p>
 		<a
 			href={`/chores/${chore.id}/edit`}
@@ -72,8 +101,8 @@
 			Edit
 		</a>
 	</div>
-	<p class="text-sm text-gray-500">{chore.roomName} · {assigneeLabel}</p>
-	<p class="mb-3 text-sm text-gray-500">
+	<p class="relative z-10 text-sm text-gray-500">{chore.roomName} · {assigneeLabel}</p>
+	<p class="relative z-10 mb-3 text-sm text-gray-500">
 		{#if chore.lastCompletedAt === null}
 			Never
 		{:else}
@@ -83,6 +112,7 @@
 		{/if}
 	</p>
 	<form
+		class="relative z-10"
 		method="POST"
 		action="?/markPerformed"
 		use:enhance={() => {

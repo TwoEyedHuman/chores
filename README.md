@@ -1,5 +1,7 @@
 # Chores
 
+[![Deploy](https://github.com/TwoEyedHuman/chores/actions/workflows/deploy.yml/badge.svg)](https://github.com/TwoEyedHuman/chores/actions/workflows/deploy.yml)
+
 > A two-person household chore tracker: see what's due, tap to record that you did it.
 
 ---

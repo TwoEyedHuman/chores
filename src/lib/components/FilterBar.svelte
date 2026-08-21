@@ -52,7 +52,7 @@
 
 <button
 	type="button"
-	class="fixed top-1/2 left-0 z-30 -translate-y-1/2 rounded-r-lg bg-gray-900 py-3 pr-2.5 pl-2 text-white shadow-lg"
+	class="fixed top-[20%] left-0 z-30 -translate-y-1/2 rounded-r-lg bg-gray-500 py-3 pr-2.5 pl-2 text-white shadow-lg"
 	onclick={() => (open = true)}
 	aria-label="Filters"
 >

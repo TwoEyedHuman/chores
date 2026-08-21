@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import type { Chore } from '$lib/types';
 	import { formatAbsoluteDate, formatRelativeDate } from '$lib/relativeDate';
 
@@ -6,6 +7,9 @@
 
 	const accentVar = $derived(`var(--frequency-${chore.frequency.replace(/_/g, '-')})`);
 	const assigneeLabel = $derived(chore.assigneeDisplayName ?? 'Either');
+
+	let pending = $state(false);
+	let error = $state<string | null>(null);
 </script>
 
 <div
@@ -24,4 +28,31 @@
 			</span>
 		{/if}
 	</p>
+	<form
+		method="POST"
+		action="?/markPerformed"
+		use:enhance={() => {
+			pending = true;
+			error = null;
+			return async ({ update, result }) => {
+				await update();
+				pending = false;
+				if (result.type === 'failure') {
+					error = (result.data?.error as string) ?? 'Something went wrong';
+				}
+			};
+		}}
+	>
+		<input type="hidden" name="choreId" value={chore.id} />
+		<button
+			type="submit"
+			disabled={pending}
+			class="mt-2 rounded bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+		>
+			{pending ? 'Saving…' : 'Mark performed'}
+		</button>
+	</form>
+	{#if error}
+		<p class="mt-1 text-sm text-red-600">{error}</p>
+	{/if}
 </div>

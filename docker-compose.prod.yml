@@ -1,5 +1,6 @@
 services:
   app:
+    build: .
     image: chores-app:local
     expose:
       - "3000"
@@ -7,6 +8,13 @@ services:
       - ./data:/data
     env_file:
       - .env
+    # .env's DATABASE_PATH/NODE_ENV are tuned for the dev container (WORKDIR
+    # /app, mounted at ./data:/app/data). Override here so this matches the
+    # real production image: DATABASE_PATH resolves against the /data mount
+    # (same as fly.toml), and NODE_ENV is actually production.
+    environment:
+      DATABASE_PATH: /data/chores.db
+      NODE_ENV: production
     stop_grace_period: 5s
 
   caddy:

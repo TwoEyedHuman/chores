@@ -18,12 +18,9 @@
 				<img src={favicon} alt="" class="h-7 w-7" />
 				<span class="font-medium">{data.user.displayName}</span>
 			</div>
-			<div class="flex items-center gap-2">
-				<a href="/chores/new" class="btn-primary px-3 py-1.5">Add chore</a>
-				<form method="POST" action="/logout">
-					<button type="submit" class="btn-ghost px-3 py-1.5">Log out</button>
-				</form>
-			</div>
+			<form method="POST" action="/logout">
+				<button type="submit" class="btn-ghost px-3 py-1.5">Log out</button>
+			</form>
 		</div>
 		<svg viewBox="0 0 200 8" preserveAspectRatio="none" class="block h-2 w-full text-sage-200" aria-hidden="true">
 			<path
@@ -32,6 +29,17 @@
 			/>
 		</svg>
 	</header>
+
+	<a
+		href="/chores/new"
+		aria-label="Add chore"
+		class="fixed right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-sage-600 text-white shadow-lg transition-colors hover:bg-sage-700"
+		style="bottom: calc(env(safe-area-inset-bottom) + 1.25rem)"
+	>
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-6 w-6">
+			<path d="M12 5v14M5 12h14" />
+		</svg>
+	</a>
 {/if}
 
 {@render children()}

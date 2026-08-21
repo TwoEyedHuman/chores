@@ -4,7 +4,7 @@ services:
     expose:
       - "3000"
     volumes:
-      - ./data:/data
+      - ./data:/app/data
     env_file:
       - .env
     stop_grace_period: 5s

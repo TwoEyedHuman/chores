@@ -38,7 +38,7 @@
 	<form
 		method="POST"
 		action="?/delete"
-		class="mt-8 border-t border-gray-200 pt-4"
+		class="mt-8 border-t border-stone-200 pt-4"
 		use:enhance={() => {
 			deleting = true;
 			return async ({ result }) => {

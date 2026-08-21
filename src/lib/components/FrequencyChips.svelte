@@ -13,11 +13,12 @@
 	} = $props();
 
 	const items = $derived([
-		{ key: null, label: 'All', accentVar: null },
+		{ key: null, label: 'All', accentVar: null, icon: undefined },
 		...frequencies.map((f) => ({
 			key: f.key,
 			label: f.label,
-			accentVar: `var(--frequency-${f.key.replace(/_/g, '-')})`
+			accentVar: `var(--frequency-${f.key.replace(/_/g, '-')})`,
+			icon: f.key
 		}))
 	]);
 </script>

@@ -84,7 +84,7 @@
 
 <button
 	type="button"
-	class="fixed top-[20%] left-0 z-30 -translate-y-1/2 rounded-r-lg bg-gray-500 py-3 pr-2.5 pl-2 text-white shadow-lg transition-all duration-200 ease-out"
+	class="fixed top-[20%] left-0 z-30 -translate-y-1/2 rounded-r-lg bg-sage-600 py-3 pr-2.5 pl-2 text-white shadow-lg transition-all duration-200 ease-out"
 	class:opacity-50={!poked}
 	class:-translate-x-[65%]={!poked}
 	onpointerenter={handlePointerEnter}
@@ -97,7 +97,7 @@
 		<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M7 12h10M10 18h4" />
 	</svg>
 	{#if hasActiveFilters}
-		<span class="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+		<span class="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-sage-300"></span>
 	{/if}
 </button>
 
@@ -117,7 +117,7 @@
 			<h2 class="text-base font-semibold">Filters</h2>
 			<button
 				type="button"
-				class="p-1 text-gray-400"
+				class="p-1 text-stone-400"
 				onclick={() => (open = false)}
 				aria-label="Close"
 			>
@@ -129,7 +129,7 @@
 
 		<div class="space-y-4">
 			<div>
-				<p class="mb-1 px-1 text-xs font-medium tracking-wide text-gray-500 uppercase">
+				<p class="mb-1 px-1 text-xs font-medium tracking-wide text-stone-500 uppercase">
 					Frequency
 				</p>
 				<FrequencyChips
@@ -140,7 +140,7 @@
 			</div>
 
 			<div>
-				<p class="mb-1 px-1 text-xs font-medium tracking-wide text-gray-500 uppercase">Room</p>
+				<p class="mb-1 px-1 text-xs font-medium tracking-wide text-stone-500 uppercase">Room</p>
 				<ScrollSelector
 					items={roomItems}
 					selected={filters.roomId ?? null}
@@ -149,7 +149,7 @@
 			</div>
 
 			<div>
-				<p class="mb-1 px-1 text-xs font-medium tracking-wide text-gray-500 uppercase">Person</p>
+				<p class="mb-1 px-1 text-xs font-medium tracking-wide text-stone-500 uppercase">Person</p>
 				<ScrollSelector
 					items={personItems}
 					selected={filters.assignee ?? null}

@@ -1,20 +1,34 @@
 @import 'tailwindcss';
 
-:root {
-	--frequency-daily: #3b82f6;
-	--frequency-weekly: #22c55e;
-	--frequency-monthly: #ca8a04;
-	--frequency-quarterly: #f59e0b;
-	--frequency-biannual: #a855f7;
-	--frequency-annual: #7c3aed;
-	--frequency-one-off: #f97316;
+@theme {
+	--color-sage-50: #f6f7f2;
+	--color-sage-100: #e9ece1;
+	--color-sage-200: #d3dac3;
+	--color-sage-300: #b5c2a0;
+	--color-sage-400: #93a879;
+	--color-sage-500: #748f5b;
+	--color-sage-600: #5d7549;
+	--color-sage-700: #4a5d3a;
+	--color-sage-800: #3a492d;
+	--color-sage-900: #2c3722;
+}
 
-	--color-bg: #f8fafc;
-	--color-border: #e2e8f0;
-	--color-text: #0f172a;
-	--color-text-muted: #64748b;
-	--color-accent: #059669;
-	--color-accent-hover: #047857;
+:root {
+	/* muted, earthy — spa shelf rather than primary-color chart */
+	--frequency-daily: #5b8aa6;
+	--frequency-weekly: #6b8f5a;
+	--frequency-monthly: #c08a3e;
+	--frequency-quarterly: #bd6b4d;
+	--frequency-biannual: #8b7ba8;
+	--frequency-annual: #6e4c7d;
+	--frequency-one-off: #d97d62;
+
+	--color-bg: #faf8f3;
+	--color-border: #e3ddd0;
+	--color-text: #2b2a26;
+	--color-text-muted: #7a7566;
+	--color-accent: #5d7549;
+	--color-accent-hover: #4a5d3a;
 }
 
 body {
@@ -24,22 +38,22 @@ body {
 
 @layer components {
 	.btn-primary {
-		@apply inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50;
+		@apply inline-flex items-center justify-center gap-1.5 rounded-full bg-sage-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-sage-700 disabled:cursor-not-allowed disabled:opacity-50;
 	}
 	.btn-ghost {
-		@apply inline-flex items-center justify-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50;
+		@apply inline-flex items-center justify-center gap-1.5 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50;
 	}
 	.btn-danger {
 		@apply inline-flex items-center justify-center gap-1.5 rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50;
 	}
 	.field-label {
-		@apply mb-1 block text-sm font-medium text-gray-700;
+		@apply mb-1 block text-sm font-medium text-stone-700;
 	}
 	.field {
-		@apply w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100;
+		@apply w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-sage-500 focus:ring-2 focus:ring-sage-100;
 	}
 	.card {
-		@apply rounded-xl border-l-4 bg-white p-3.5 shadow-sm transition-transform;
+		@apply rounded-2xl border-l-4 bg-white p-3.5 shadow-sm transition-transform;
 	}
 	.page-container {
 		@apply mx-auto w-full max-w-3xl;

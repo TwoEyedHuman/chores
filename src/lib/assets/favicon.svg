@@ -1,13 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-	<rect width="32" height="32" rx="9" fill="#059669" />
+	<rect width="32" height="32" rx="9" fill="#5d7549" />
 	<path
 		d="M8 17l8-7 8 7"
 		fill="none"
-		stroke="#ffffff"
+		stroke="#faf8f3"
 		stroke-width="3"
 		stroke-linecap="round"
 		stroke-linejoin="round"
 	/>
-	<path d="M11 16v7.5a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V16" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-	<circle cx="23.5" cy="8.5" r="2" fill="#fde047" />
+	<path
+		d="M11 16v7.5a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V16"
+		fill="none"
+		stroke="#faf8f3"
+		stroke-width="3"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+	/>
+	<circle cx="24" cy="9" r="2.4" fill="#e9ece1" fill-opacity="0.9" />
+	<circle cx="27" cy="14.5" r="1.4" fill="#e9ece1" fill-opacity="0.75" />
 </svg>

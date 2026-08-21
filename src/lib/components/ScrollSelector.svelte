@@ -1,5 +1,7 @@
 <script lang="ts">
-	type Item = { key: string | null; label: string; accentVar: string | null };
+	import FrequencyIcon from './FrequencyIcon.svelte';
+
+	type Item = { key: string | null; label: string; accentVar: string | null; icon?: string };
 
 	let {
 		items,
@@ -80,7 +82,7 @@
 <div
 	bind:this={scroller}
 	onscroll={handleScroll}
-	class="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto rounded-lg bg-gray-100 px-[50%] py-2.5"
+	class="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto rounded-lg bg-stone-100 px-[50%] py-2.5"
 >
 	{#each items as item, i (item.key ?? 'all')}
 		{@const isSelected = selected === item.key}
@@ -88,9 +90,9 @@
 		<button
 			bind:this={chipEls[i]}
 			type="button"
-			class="shrink-0 snap-center rounded whitespace-nowrap text-sm font-medium transition-[transform,filter,opacity,color] duration-150"
-			class:text-gray-900={isSelected && !item.accentVar}
-			class:text-gray-500={!isSelected}
+			class="flex shrink-0 snap-center items-center gap-1.5 rounded whitespace-nowrap text-sm font-medium transition-[transform,filter,opacity,color] duration-150"
+			class:text-stone-900={isSelected && !item.accentVar}
+			class:text-stone-500={!isSelected}
 			style="
 				{item.accentVar && isSelected ? `color: ${item.accentVar};` : ''}
 				opacity: {1 - dist * 0.6};
@@ -99,6 +101,9 @@
 			"
 			onclick={() => onSelect(item.key)}
 		>
+			{#if item.icon}
+				<FrequencyIcon key={item.icon} class="h-3.5 w-3.5" />
+			{/if}
 			{item.label}
 		</button>
 	{/each}

@@ -1,10 +1,26 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import favicon from '$lib/assets/favicon.svg';
 	import Toast from '$lib/components/Toast.svelte';
 	import '../app.css';
 	import type { LayoutProps } from './$types';
 
 	let { children, data }: LayoutProps = $props();
+
+	let headerHidden = $state(false);
+
+	onMount(() => {
+		let lastY = window.scrollY;
+
+		function onScroll() {
+			const y = window.scrollY;
+			headerHidden = y > lastY && y > 80;
+			lastY = y;
+		}
+
+		window.addEventListener('scroll', onScroll, { passive: true });
+		return () => window.removeEventListener('scroll', onScroll);
+	});
 </script>
 
 <svelte:head>
@@ -12,7 +28,11 @@
 </svelte:head>
 
 {#if data.user}
-	<header class="sticky top-0 z-10 bg-white/90 backdrop-blur">
+	<header
+		class="sticky top-0 z-10 bg-white shadow-sm transition-transform duration-200 sm:translate-y-0 {headerHidden
+			? '-translate-y-full'
+			: 'translate-y-0'}"
+	>
 		<div class="page-container flex items-center justify-between px-4 py-3">
 			<div class="flex items-center gap-2">
 				<img src={favicon} alt="" class="h-7 w-7" />

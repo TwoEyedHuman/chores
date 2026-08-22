@@ -4,7 +4,9 @@ primary_region = "ewr"
 [env]
   DATABASE_PATH = "/data/chores.db"
   NODE_ENV = "production"
-  ORIGIN = "https://chores.brandonlocke.xyz"
+  # Story 6.3 flips this to https://chores.brandonlocke.xyz once DNS/cert
+  # are live — a mismatched ORIGIN breaks SvelteKit form actions (CSRF).
+  ORIGIN = "https://chores-brandonlocke.fly.dev"
 
 [http_service]
   internal_port = 3000

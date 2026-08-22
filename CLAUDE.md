@@ -47,6 +47,10 @@ After changing `src/lib/server/db/schema.ts`, generate a migration with `npx dri
 - `node:22-slim`, not Alpine, in both Docker stages — `better-sqlite3` is a native module and Alpine means musl rebuilds.
 - Every `docker-compose.yml` service needs `stop_grace_period: 5s` or `Ctrl+C`/`docker compose down` hangs.
 
+## CI/CD
+
+`.github/workflows/deploy.yml`: every push to `main` runs `npm test` then `flyctl deploy --remote-only` (build happens on Fly's builder, not in CI — keeps native `better-sqlite3` compiled in the deploy target). A failing test blocks deploy; there's no separate staging step. `concurrency: deploy-group` serializes overlapping pushes.
+
 ## Secrets
 
 `.env` (gitignored) holds `DATABASE_PATH`, `SESSION_SECRET`, `ORIGIN`, `NODE_ENV` locally; production uses `fly secrets` for `SESSION_SECRET` only and `fly.toml [env]` for the rest. Never commit a password, session secret, or `FLY_API_TOKEN` — passwords only ever exist as argon2 hashes in the DB, set interactively through `scripts/seed-users.ts`.

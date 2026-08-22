@@ -29,7 +29,7 @@
 
 {#if data.user}
 	<header
-		class="sticky top-0 z-10 bg-white shadow-sm transition-transform duration-200 sm:translate-y-0 {headerHidden
+		class="sticky top-0 z-20 bg-white shadow-sm transition-transform duration-200 sm:translate-y-0 {headerHidden
 			? '-translate-y-full'
 			: 'translate-y-0'}"
 	>
